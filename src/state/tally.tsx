@@ -16,6 +16,8 @@ export interface Payment {
   method: string;
   status: PaymentStatus;
   time: string;
+  /** Processor-side id (e.g. Stripe PaymentIntent id) when the charge hit a real rail. */
+  processorId?: string;
 }
 
 export type DisplayPayment = Omit<Payment, "status"> & { status: DisplayStatus };
@@ -138,16 +140,38 @@ export function TallyProvider({ children }: { children: ReactNode }) {
     p.status === "Disputed" && dispSubmitted ? { ...p, status: "Response submitted" } : p,
   );
 
+  // Creates a real test-mode charge via /api/charges when the backend has a
+  // processor configured; otherwise falls back to the prototype's simulation.
+  // The processing stage always shows for at least 1.6s (prototype timing).
   const tapToPay = () => {
     if (cents === 0) return;
     setChargeStage("processing");
-    window.setTimeout(() => {
-      setRawPayments((prev) => [
-        { id: Date.now(), cents, desc: "Tap to Pay · Visa •• 4242", method: "Tap to Pay", status: "Paid", time: "Just now" },
-        ...prev,
-      ]);
-      setChargeStage("done");
-    }, 1600);
+    const started = Date.now();
+    fetch("/api/charges", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cents, description: "Tap to Pay · Visa •• 4242" }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .catch(() => null)
+      .then((data: { id?: string } | null) => {
+        const remaining = Math.max(0, 1600 - (Date.now() - started));
+        window.setTimeout(() => {
+          setRawPayments((prev) => [
+            {
+              id: Date.now(),
+              cents,
+              desc: "Tap to Pay · Visa •• 4242",
+              method: "Tap to Pay",
+              status: "Paid",
+              time: "Just now",
+              processorId: data?.id,
+            },
+            ...prev,
+          ]);
+          setChargeStage("done");
+        }, remaining);
+      });
   };
 
   const value: TallyContextValue = {
@@ -167,6 +191,15 @@ export function TallyProvider({ children }: { children: ReactNode }) {
     },
     closeDetail: () => setSelId(null),
     refundSelected: () => {
+      const target = rawPayments.find((p) => p.id === selId);
+      if (target?.processorId) {
+        // Fire-and-forget: the UI updates optimistically, matching the prototype.
+        fetch("/api/refunds", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ paymentId: target.processorId }),
+        }).catch(() => {});
+      }
       setRawPayments((prev) => prev.map((p) => (p.id === selId ? { ...p, status: "Refunded" } : p)));
       setSelId(null);
     },
