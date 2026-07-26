@@ -7,8 +7,19 @@ import { FcGoogle } from 'react-icons/fc';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { createClient } from '@/lib/supabase/client';
 
 export default function Login() {
+  const handleGoogleSignIn = async () => {
+    const supabase = createClient();
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+  };
+
   return (
     <section className="bg-primary-300 min-h-[820px] px-6 py-10 text-white lg:py-24">
       <div className="container mx-auto flex max-w-[400px] flex-col items-center justify-center py-10">
@@ -36,6 +47,7 @@ export default function Login() {
             type="button"
             className="bg-gray-0/10 hover:bg-gray-0/15 w-full border border-white/15 text-white"
             variant="secondary"
+            onClick={handleGoogleSignIn}
           >
             <FcGoogle className="mr-2 h-5 w-5" />
             Continue with Google
