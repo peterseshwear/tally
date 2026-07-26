@@ -11,7 +11,7 @@ const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
 
 const appearance = {
   variables: {
-    colorPrimary: "#b05c2a",
+    colorPrimary: "#2a66b3",
     colorText: "#2b2521",
     colorBackground: "#ffffff",
     colorDanger: "#a8452e",
