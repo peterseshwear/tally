@@ -16,9 +16,11 @@ const WEEK_BARS = [
 export default function HomeScreen() {
   const { payments, go, instantDone, dispSubmitted } = useTally();
 
-  const todayTotal = payments
-    .filter((p) => (p.time.includes("AM") || p.time === "Just now") && p.status === "Paid")
-    .reduce((sum, p) => sum + p.cents, 0);
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const isToday = (p: { createdAt?: string; time: string }) =>
+    p.createdAt ? new Date(p.createdAt) >= startOfToday : p.time.includes("AM") || p.time === "Just now";
+  const todayTotal = payments.filter((p) => isToday(p) && p.status === "Paid").reduce((sum, p) => sum + p.cents, 0);
 
   return (
     <div className="page page--home">
@@ -72,6 +74,9 @@ export default function HomeScreen() {
         {payments.slice(0, 4).map((p) => (
           <PaymentRow key={p.id} payment={p} />
         ))}
+        {payments.length === 0 && (
+          <div className="empty-note">No payments yet — tap “+ New charge” to take your first one.</div>
+        )}
       </div>
     </div>
   );

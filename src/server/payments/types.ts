@@ -6,6 +6,8 @@
 export interface CreatePaymentInput {
   cents: number;
   description: string;
+  /** Tally merchant (auth user) id, carried in processor metadata for webhook attribution. */
+  merchantId?: string;
 }
 
 export interface PaymentResult {

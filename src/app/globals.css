@@ -333,6 +333,29 @@ h1 {
   font-size: 13px;
   color: var(--muted);
 }
+.pay-card {
+  width: 440px;
+}
+.pay-badge {
+  margin-left: auto;
+  letter-spacing: 0.06em;
+}
+.pay-hint {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+  text-align: center;
+}
+.charge-link {
+  text-align: center;
+  font-size: 12.5px;
+}
+.empty-note {
+  padding: 18px 0 12px;
+  border-top: 1px solid var(--border-soft);
+  font-size: 13px;
+  color: var(--muted);
+}
 .auth-error {
   padding: 11px 14px;
   border-radius: 10px;

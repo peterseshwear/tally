@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getSupabase } from "@/lib/supabase";
+import { insertPayment, loadMerchant, loadPayments, saveMerchant, updatePaymentStatus } from "@/lib/merchantData";
 
 export type Tab = "home" | "payments" | "payouts" | "disputes" | "settings";
 export type ChargeStage = "amount" | "processing" | "done";
@@ -11,12 +12,14 @@ export type RailKey = "stripeOn" | "adyenOn";
 export type StoreKey = "shopify" | "woo";
 
 export interface Payment {
-  id: number;
+  id: string;
   cents: number;
   desc: string;
   method: string;
   status: PaymentStatus;
   time: string;
+  /** ISO timestamp when the payment is persisted (real accounts). */
+  createdAt?: string;
   /** Processor-side id (e.g. Stripe PaymentIntent id) when the charge hit a real rail. */
   processorId?: string;
 }
@@ -36,15 +39,16 @@ export const OB_STEP_LABELS = ["Your business", "Business type", "Identity", "Pa
 export const PAYOUT_CENTS = 128406;
 export const PAYOUT_INSTANT_NET_CENTS = 127122;
 
+// Demo fixtures, shown only in mock mode (no Supabase configured).
 const SEED_PAYMENTS: Payment[] = [
-  { id: 1, cents: 1850, desc: "Tap to Pay · Visa •• 4242", method: "Tap to Pay", status: "Paid", time: "9:41 AM" },
-  { id: 2, cents: 4200, desc: "Payment link · Catering deposit", method: "Payment link", status: "Paid", time: "9:12 AM" },
-  { id: 3, cents: 675, desc: "QR code · Amex •• 1005", method: "QR code", status: "Refunded", time: "8:58 AM" },
-  { id: 4, cents: 2450, desc: "Tap to Pay · Mastercard •• 3311", method: "Tap to Pay", status: "Paid", time: "Yesterday" },
-  { id: 5, cents: 1125, desc: "Shopify · order #1041", method: "Shopify", status: "Paid", time: "Yesterday" },
-  { id: 6, cents: 8900, desc: "Payment link · Private event", method: "Payment link", status: "Paid", time: "Jul 17" },
-  { id: 7, cents: 12000, desc: "Online checkout · Mastercard •• 8830", method: "Online checkout", status: "Disputed", time: "Jul 12" },
-  { id: 8, cents: 1575, desc: "Tap to Pay · Visa •• 9902", method: "Tap to Pay", status: "Paid", time: "Jul 12" },
+  { id: "seed-1", cents: 1850, desc: "Tap to Pay · Visa •• 4242", method: "Tap to Pay", status: "Paid", time: "9:41 AM" },
+  { id: "seed-2", cents: 4200, desc: "Payment link · Catering deposit", method: "Payment link", status: "Paid", time: "9:12 AM" },
+  { id: "seed-3", cents: 675, desc: "QR code · Amex •• 1005", method: "QR code", status: "Refunded", time: "8:58 AM" },
+  { id: "seed-4", cents: 2450, desc: "Tap to Pay · Mastercard •• 3311", method: "Tap to Pay", status: "Paid", time: "Yesterday" },
+  { id: "seed-5", cents: 1125, desc: "Shopify · order #1041", method: "Shopify", status: "Paid", time: "Yesterday" },
+  { id: "seed-6", cents: 8900, desc: "Payment link · Private event", method: "Payment link", status: "Paid", time: "Jul 17" },
+  { id: "seed-7", cents: 12000, desc: "Online checkout · Mastercard •• 8830", method: "Online checkout", status: "Disputed", time: "Jul 12" },
+  { id: "seed-8", cents: 1575, desc: "Tap to Pay · Visa •• 9902", method: "Tap to Pay", status: "Paid", time: "Jul 12" },
 ];
 
 export function money(cents: number): string {
@@ -70,9 +74,11 @@ interface TallyContextValue {
   // Auth: real Supabase accounts when configured, local mock otherwise.
   authed: boolean;
   email: string;
+  uid: string | null;
   /** Returns an error message to display, or null on success. */
   signUp: (email: string, password: string) => Promise<string | null>;
   signIn: (email: string, password: string) => Promise<string | null>;
+  signOut: () => void;
   // Onboarding
   entered: boolean;
   obStep: number;
@@ -87,8 +93,8 @@ interface TallyContextValue {
   go: (t: Tab) => void;
   // Payments (dispute display status already applied)
   payments: DisplayPayment[];
-  selId: number | null;
-  openDetail: (id: number) => void;
+  selId: string | null;
+  openDetail: (id: string) => void;
   closeDetail: () => void;
   refundSelected: () => void;
   // New charge
@@ -130,13 +136,14 @@ const MAX_CENTS = 99999999;
 export function TallyProvider({ children }: { children: ReactNode }) {
   const [authed, setAuthed] = useState(false);
   const [email, setEmail] = useState("");
+  const [uid, setUid] = useState<string | null>(null);
   const [entered, setEntered] = useState(false);
   const [obStep, setObStep] = useState(0);
   const [biz, setBiz] = useState(0);
   const [bizName, setBizName] = useState("");
   const [tab, setTab] = useState<Tab>("home");
   const [rawPayments, setRawPayments] = useState<Payment[]>(SEED_PAYMENTS);
-  const [selId, setSelId] = useState<number | null>(null);
+  const [selId, setSelId] = useState<string | null>(null);
   const [chargeOpen, setChargeOpen] = useState(false);
   const [chargeStage, setChargeStage] = useState<ChargeStage>("amount");
   const [cents, setCents] = useState(0);
@@ -148,18 +155,33 @@ export function TallyProvider({ children }: { children: ReactNode }) {
   const [shopify, setShopify] = useState(true);
   const [woo, setWoo] = useState(false);
 
-  // Restore an existing Supabase session on reload — an already-registered
-  // user lands straight on the dashboard.
+  // Loads the signed-in user's merchant profile and payments. Returns whether
+  // a merchant profile exists (i.e. onboarding questions were completed).
+  const loadAccount = async (userId: string): Promise<boolean> => {
+    const supabase = getSupabase();
+    if (!supabase) return true;
+    const [merchant, payments] = await Promise.all([loadMerchant(supabase, userId), loadPayments(supabase)]);
+    if (merchant) {
+      setBizName(merchant.businessName);
+      setBiz(merchant.bizType);
+    }
+    // Real accounts see only their own data — including an empty list.
+    if (payments) setRawPayments(payments);
+    return merchant !== null;
+  };
+
+  // Restore an existing Supabase session on reload.
   useEffect(() => {
     const supabase = getSupabase();
     if (!supabase) return;
-    supabase.auth.getSession().then(({ data }) => {
-      const addr = data.session?.user?.email;
-      if (addr) {
-        setEmail(addr);
-        setAuthed(true);
-        setEntered(true);
-      }
+    supabase.auth.getSession().then(async ({ data }) => {
+      const user = data.session?.user;
+      if (!user?.email) return;
+      setEmail(user.email);
+      setUid(user.id);
+      setAuthed(true);
+      const hasMerchant = await loadAccount(user.id);
+      setEntered(hasMerchant);
     });
   }, []);
 
@@ -177,42 +199,73 @@ export function TallyProvider({ children }: { children: ReactNode }) {
     fetch("/api/charges", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cents, description: "Tap to Pay · Visa •• 4242" }),
+      body: JSON.stringify({ cents, description: "Tap to Pay · Visa •• 4242", merchantId: uid ?? undefined }),
     })
       .then((res) => (res.ok ? res.json() : null))
       .catch(() => null)
-      .then((data: { id?: string } | null) => {
+      .then(async (data: { id?: string } | null) => {
+        const desc = "Tap to Pay · Visa •• 4242";
+        let payment: Payment | null = null;
+        const supabase = getSupabase();
+        if (supabase && uid) {
+          payment = await insertPayment(supabase, uid, {
+            cents,
+            description: desc,
+            method: "Tap to Pay",
+            processorId: data?.id,
+          });
+        }
+        if (!payment) {
+          payment = {
+            id: `local-${Date.now()}`,
+            cents,
+            desc,
+            method: "Tap to Pay",
+            status: "Paid",
+            time: "Just now",
+            createdAt: new Date().toISOString(),
+            processorId: data?.id,
+          };
+        }
         const remaining = Math.max(0, 1600 - (Date.now() - started));
         window.setTimeout(() => {
-          setRawPayments((prev) => [
-            {
-              id: Date.now(),
-              cents,
-              desc: "Tap to Pay · Visa •• 4242",
-              method: "Tap to Pay",
-              status: "Paid",
-              time: "Just now",
-              processorId: data?.id,
-            },
-            ...prev,
-          ]);
+          setRawPayments((prev) => [payment, ...prev]);
           setChargeStage("done");
         }, remaining);
       });
   };
 
+  const resetLocalState = () => {
+    setAuthed(false);
+    setEmail("");
+    setUid(null);
+    setEntered(false);
+    setObStep(0);
+    setBiz(0);
+    setBizName("");
+    setTab("home");
+    setRawPayments(SEED_PAYMENTS);
+    setSelId(null);
+    setChargeOpen(false);
+    setInstantDone(false);
+    setEvidence([false, false, false]);
+    setDispSubmitted(false);
+  };
+
   const value: TallyContextValue = {
     authed,
     email,
-    // Sign-up leads into the business questions; sign-in is an existing
-    // account, so it goes straight to the dashboard. With Supabase configured
-    // these are real accounts; otherwise a local mock so the demo still works.
+    uid,
+    // Sign-up leads into the business questions; sign-in loads the account and
+    // goes straight to the dashboard (or to the questions when the profile was
+    // never completed). Without Supabase both fall back to the local mock.
     signUp: async (addr, password) => {
       const supabase = getSupabase();
       if (supabase) {
         const { data, error } = await supabase.auth.signUp({ email: addr, password });
         if (error) return error.message;
         if (!data.session) return "Account created — check your email to confirm, then sign in.";
+        setUid(data.session.user.id);
       }
       setEmail(addr);
       setAuthed(true);
@@ -221,13 +274,24 @@ export function TallyProvider({ children }: { children: ReactNode }) {
     signIn: async (addr, password) => {
       const supabase = getSupabase();
       if (supabase) {
-        const { error } = await supabase.auth.signInWithPassword({ email: addr, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email: addr, password });
         if (error) return error.message;
+        const userId = data.session?.user?.id ?? null;
+        setUid(userId);
+        setEmail(addr);
+        setAuthed(true);
+        const hasMerchant = userId ? await loadAccount(userId) : false;
+        setEntered(hasMerchant);
+        return null;
       }
       setEmail(addr);
       setAuthed(true);
       setEntered(true);
       return null;
+    },
+    signOut: () => {
+      getSupabase()?.auth.signOut();
+      resetLocalState();
     },
     entered,
     obStep,
@@ -235,7 +299,16 @@ export function TallyProvider({ children }: { children: ReactNode }) {
     bizName,
     setBizName,
     pickBiz: setBiz,
-    obNext: () => (obStep < 3 ? setObStep(obStep + 1) : setEntered(true)),
+    obNext: () => {
+      if (obStep < 3) {
+        setObStep(obStep + 1);
+        return;
+      }
+      // Finishing onboarding persists the merchant profile for real accounts.
+      const supabase = getSupabase();
+      if (supabase && uid) saveMerchant(supabase, uid, email, bizName.trim(), biz);
+      setEntered(true);
+    },
     obBack: () => setObStep((s) => Math.max(0, s - 1)),
     tab,
     go: setTab,
@@ -255,6 +328,10 @@ export function TallyProvider({ children }: { children: ReactNode }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ paymentId: target.processorId }),
         }).catch(() => {});
+      }
+      const supabase = getSupabase();
+      if (supabase && uid && target && !target.id.startsWith("local-") && !target.id.startsWith("seed-")) {
+        updatePaymentStatus(supabase, target.id, "Refunded");
       }
       setRawPayments((prev) => prev.map((p) => (p.id === selId ? { ...p, status: "Refunded" } : p)));
       setSelId(null);

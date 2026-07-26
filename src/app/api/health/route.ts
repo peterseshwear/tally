@@ -15,5 +15,7 @@ export async function GET() {
     hasPublishableKeyVar: !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     supabaseConfigured:
       !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    supabaseAdminConfigured: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    webhookConfigured: !!process.env.STRIPE_WEBHOOK_SECRET,
   });
 }

@@ -26,7 +26,7 @@ const SCREENS: Record<Tab, React.ComponentType> = {
 };
 
 export default function AppShell() {
-  const { tab, go, dispSubmitted, openCharge, selId, chargeOpen, bizName } = useTally();
+  const { tab, go, dispSubmitted, openCharge, selId, chargeOpen, bizName, signOut } = useTally();
   const Screen = SCREENS[tab];
 
   return (
@@ -49,6 +49,10 @@ export default function AppShell() {
           <b>{bizName.trim() || "Oat & Ivy Café"}</b>
           <br />
           Sandbox · payouts daily
+          <br />
+          <span className="link" onClick={signOut}>
+            Sign out
+          </span>
         </div>
       </div>
 

@@ -4,9 +4,9 @@ import { getProcessor } from "@/server/payments";
 const MAX_CENTS = 99999999;
 
 export async function POST(req: Request) {
-  let cents: unknown, description: unknown;
+  let cents: unknown, description: unknown, merchantId: unknown;
   try {
-    ({ cents, description } = await req.json());
+    ({ cents, description, merchantId } = await req.json());
   } catch {
     return NextResponse.json({ error: "invalid-json" }, { status: 400 });
   }
@@ -20,7 +20,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "processor-not-configured" }, { status: 501 });
   }
   try {
-    const result = await processor.createPayment({ cents, description: desc });
+    const result = await processor.createPayment({
+      cents,
+      description: desc,
+      merchantId: typeof merchantId === "string" && merchantId ? merchantId : undefined,
+    });
     if (result.status !== "succeeded") {
       return NextResponse.json({ error: "payment-failed" }, { status: 502 });
     }

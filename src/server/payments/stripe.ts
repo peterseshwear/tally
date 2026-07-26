@@ -20,6 +20,11 @@ function getClient(): Stripe | null {
   return client;
 }
 
+/** Raw Stripe client for Stripe-specific endpoints (Elements, webhooks). */
+export function getStripeClient(): Stripe | null {
+  return getClient();
+}
+
 export const stripeProcessor: PaymentProcessor = {
   name: "stripe",
 
@@ -27,7 +32,7 @@ export const stripeProcessor: PaymentProcessor = {
     return testModeKey() !== null;
   },
 
-  async createPayment({ cents, description }: CreatePaymentInput): Promise<PaymentResult> {
+  async createPayment({ cents, description, merchantId }: CreatePaymentInput): Promise<PaymentResult> {
     const stripe = getClient();
     if (!stripe) throw new Error("Stripe is not configured");
     // pm_card_visa is Stripe's test payment method — stands in for the card
@@ -39,6 +44,7 @@ export const stripeProcessor: PaymentProcessor = {
       payment_method: "pm_card_visa",
       confirm: true,
       automatic_payment_methods: { enabled: true, allow_redirects: "never" },
+      metadata: merchantId ? { merchant_id: merchantId } : undefined,
     });
     return { id: intent.id, status: intent.status === "succeeded" ? "succeeded" : "failed" };
   },

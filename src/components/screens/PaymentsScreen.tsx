@@ -19,6 +19,9 @@ export default function PaymentsScreen() {
         {payments.map((p) => (
           <PaymentRow key={p.id} payment={p} table />
         ))}
+        {payments.length === 0 && (
+          <div className="empty-note">No payments yet — tap “+ New charge” to take your first one.</div>
+        )}
       </div>
     </div>
   );
