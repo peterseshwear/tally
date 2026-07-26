@@ -43,8 +43,7 @@ export default function ZippayBlogPost({
     if (!root) return;
 
     const hs = Array.from(root.querySelectorAll('h2, h3')) as
-      | HTMLHeadingElement[]
-      | [];
+      HTMLHeadingElement[] | [];
     const items: TocItem[] = [];
     hs.forEach((h) => {
       let id = h.getAttribute('id') || '';
