@@ -4,6 +4,7 @@ import ZippayFeatureQuad from '@/components/sections/zippay-feature-quad';
 import ZippayFeaturesSection from '@/components/sections/zippay-features-section';
 import ZippayHero from '@/components/sections/zippay-hero';
 import ZippayTestimonialsSection from '@/components/sections/zippay-testimonials-section';
+import ZippayWorldMapSection from '@/components/sections/zippay-world-map-section';
 
 export default function Home() {
   return (
@@ -12,6 +13,7 @@ export default function Home() {
       <ZippayFeaturesSection />
       <ZippayContentsSection />
       <ZippayFeatureQuad />
+      <ZippayWorldMapSection />
       <ZippayTestimonialsSection />
       <ZippayCtaSection />
     </>
