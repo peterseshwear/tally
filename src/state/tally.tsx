@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { getSupabase } from "@/lib/supabase";
 
 export type Tab = "home" | "payments" | "payouts" | "disputes" | "settings";
 export type ChargeStage = "amount" | "processing" | "done";
@@ -29,7 +30,7 @@ export const BIZ_TYPES = [
   { name: "Something else", hint: "Tell us in the next step" },
 ] as const;
 
-export const OB_STEP_LABELS = ["About you", "Your business", "Identity", "Payouts"] as const;
+export const OB_STEP_LABELS = ["Your business", "Business type", "Identity", "Payouts"] as const;
 
 /** Pending payout amounts (prototype fixtures). Instant payout nets a 1% fee. */
 export const PAYOUT_CENTS = 128406;
@@ -66,10 +67,18 @@ export function pillClass(status: DisplayStatus): string {
 }
 
 interface TallyContextValue {
+  // Auth: real Supabase accounts when configured, local mock otherwise.
+  authed: boolean;
+  email: string;
+  /** Returns an error message to display, or null on success. */
+  signUp: (email: string, password: string) => Promise<string | null>;
+  signIn: (email: string, password: string) => Promise<string | null>;
   // Onboarding
   entered: boolean;
   obStep: number;
   biz: number;
+  bizName: string;
+  setBizName: (name: string) => void;
   pickBiz: (i: number) => void;
   obNext: () => void;
   obBack: () => void;
@@ -119,9 +128,12 @@ export function useTally(): TallyContextValue {
 const MAX_CENTS = 99999999;
 
 export function TallyProvider({ children }: { children: ReactNode }) {
+  const [authed, setAuthed] = useState(false);
+  const [email, setEmail] = useState("");
   const [entered, setEntered] = useState(false);
   const [obStep, setObStep] = useState(0);
   const [biz, setBiz] = useState(0);
+  const [bizName, setBizName] = useState("");
   const [tab, setTab] = useState<Tab>("home");
   const [rawPayments, setRawPayments] = useState<Payment[]>(SEED_PAYMENTS);
   const [selId, setSelId] = useState<number | null>(null);
@@ -135,6 +147,21 @@ export function TallyProvider({ children }: { children: ReactNode }) {
   const [adyenOn, setAdyenOn] = useState(true);
   const [shopify, setShopify] = useState(true);
   const [woo, setWoo] = useState(false);
+
+  // Restore an existing Supabase session on reload — an already-registered
+  // user lands straight on the dashboard.
+  useEffect(() => {
+    const supabase = getSupabase();
+    if (!supabase) return;
+    supabase.auth.getSession().then(({ data }) => {
+      const addr = data.session?.user?.email;
+      if (addr) {
+        setEmail(addr);
+        setAuthed(true);
+        setEntered(true);
+      }
+    });
+  }, []);
 
   const payments: DisplayPayment[] = rawPayments.map((p) =>
     p.status === "Disputed" && dispSubmitted ? { ...p, status: "Response submitted" } : p,
@@ -175,9 +202,38 @@ export function TallyProvider({ children }: { children: ReactNode }) {
   };
 
   const value: TallyContextValue = {
+    authed,
+    email,
+    // Sign-up leads into the business questions; sign-in is an existing
+    // account, so it goes straight to the dashboard. With Supabase configured
+    // these are real accounts; otherwise a local mock so the demo still works.
+    signUp: async (addr, password) => {
+      const supabase = getSupabase();
+      if (supabase) {
+        const { data, error } = await supabase.auth.signUp({ email: addr, password });
+        if (error) return error.message;
+        if (!data.session) return "Account created — check your email to confirm, then sign in.";
+      }
+      setEmail(addr);
+      setAuthed(true);
+      return null;
+    },
+    signIn: async (addr, password) => {
+      const supabase = getSupabase();
+      if (supabase) {
+        const { error } = await supabase.auth.signInWithPassword({ email: addr, password });
+        if (error) return error.message;
+      }
+      setEmail(addr);
+      setAuthed(true);
+      setEntered(true);
+      return null;
+    },
     entered,
     obStep,
     biz,
+    bizName,
+    setBizName,
     pickBiz: setBiz,
     obNext: () => (obStep < 3 ? setObStep(obStep + 1) : setEntered(true)),
     obBack: () => setObStep((s) => Math.max(0, s - 1)),
