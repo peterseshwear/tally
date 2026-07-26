@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { BIZ_TYPES, OB_STEP_LABELS, useTally } from "@/state/tally";
+import { HeroSection } from "./marketing/HeroSection";
 
 type AuthScreen = "welcome" | "signup" | "signin";
 
@@ -38,21 +39,15 @@ function MarketingHome({
         </div>
       </nav>
 
-      <section className="home-hero">
-        <h1 className="home-hero-title">Payments that make sense</h1>
-        <p className="home-hero-sub">
-          Tally lets small businesses take payments in person and online, see their money clearly, and get paid out
-          daily — one simple fee, no jargon.
-        </p>
-        <div className="home-hero-cta">
-          <div className="btn-blue btn-blue--lg" onClick={onCreateAccount}>
-            Create Account
-          </div>
-          <div className="btn-outline" onClick={onSignIn}>
-            Sign in
-          </div>
-        </div>
-      </section>
+      <HeroSection
+        title="Trusted by small businesses everywhere"
+        subtitle={{ regular: "Payments that ", gradient: "make sense." }}
+        description="Tally lets small businesses take payments in person and online, see their money clearly, and get paid out daily — one simple fee, no jargon."
+        ctaText="Create Account"
+        onCtaClick={onCreateAccount}
+        secondaryText="Sign in"
+        onSecondaryClick={onSignIn}
+      />
 
       <section className="home-features-grid">
         <div className="home-feature-card">

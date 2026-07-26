@@ -1,3 +1,21 @@
+/* ===== Tailwind (utilities only — no preflight, so existing styles are untouched) ===== */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@theme {
+  --animate-grid: grid 14s linear infinite;
+}
+
+@keyframes grid {
+  0% {
+    transform: translateY(-50%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
 /* ===== Design tokens (from design_handoff_tally_app/README.md) ===== */
 :root {
   --oat: #efe9e1;
@@ -249,59 +267,6 @@ h1 {
 .btn-blue:hover {
   background: var(--accent-strong);
 }
-.btn-blue--lg {
-  height: 52px;
-  padding: 0 28px;
-  font-size: 16px;
-  border-radius: 12px;
-}
-.btn-outline {
-  height: 52px;
-  padding: 0 28px;
-  border-radius: 12px;
-  border: 1.5px solid var(--border-input);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  color: var(--ink);
-}
-.btn-outline:hover {
-  background: var(--surface-2);
-}
-
-.home-hero {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 110px 24px 72px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 22px;
-  text-align: center;
-}
-.home-hero-title {
-  font-family: var(--font-heading);
-  font-size: 56px;
-  font-weight: 700;
-  line-height: 1.08;
-  margin: 0;
-}
-.home-hero-sub {
-  font-size: 18px;
-  line-height: 1.55;
-  color: var(--ink-2);
-  max-width: 560px;
-  margin: 0;
-}
-.home-hero-cta {
-  display: flex;
-  gap: 14px;
-  margin-top: 8px;
-}
-
 .home-features-grid {
   max-width: 980px;
   margin: 0 auto;
@@ -352,20 +317,6 @@ h1 {
   }
   .home-nav-right {
     gap: 14px;
-  }
-  .home-hero {
-    padding: 72px 20px 48px;
-  }
-  .home-hero-title {
-    font-size: 36px;
-  }
-  .home-hero-cta {
-    flex-direction: column;
-    width: 100%;
-  }
-  .home-hero-cta .btn-blue--lg,
-  .home-hero-cta .btn-outline {
-    width: 100%;
   }
   .home-features-grid {
     grid-template-columns: 1fr;
