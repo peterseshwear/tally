@@ -13,5 +13,7 @@ export async function GET() {
     hasSecretKeyVar: typeof key === "string" && key.length > 0,
     secretKeyPrefix: key ? key.slice(0, 8) : null,
     hasPublishableKeyVar: !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+    supabaseConfigured:
+      !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   });
 }
