@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { BIZ_TYPES, OB_STEP_LABELS, useTally } from "@/state/tally";
-import { HeroSection } from "./marketing/HeroSection";
+import { HeroSection } from "./blocks/hero-section-dark";
 
 type AuthScreen = "welcome" | "signup" | "signin";
 
@@ -33,21 +33,37 @@ function MarketingHome({
           <a className="home-link" href="#contact">
             Contact us
           </a>
+          <a className="home-link" href="#signin" onClick={(e) => { e.preventDefault(); onSignIn(); }}>
+            Sign in
+          </a>
           <div className="btn-blue" onClick={onCreateAccount}>
             Create Account
           </div>
         </div>
       </nav>
 
-      <HeroSection
-        title="Trusted by small businesses everywhere"
-        subtitle={{ regular: "Payments that ", gradient: "make sense." }}
-        description="Tally lets small businesses take payments in person and online, see their money clearly, and get paid out daily — one simple fee, no jargon."
-        ctaText="Create Account"
-        onCtaClick={onCreateAccount}
-        secondaryText="Sign in"
-        onSecondaryClick={onSignIn}
-      />
+      {/* Verbatim 21st.dev "Hero Section Dark" component (kinfe123) — content passed
+          via its own props API only; the component file itself is unmodified. The CTA
+          click is intercepted here rather than editing the component's internal <a>. */}
+      <div
+        className="hero-dark-original"
+        onClick={(e) => {
+          const cta = (e.target as HTMLElement).closest('a[href="#signup"]');
+          if (cta) {
+            e.preventDefault();
+            onCreateAccount();
+          }
+        }}
+      >
+        <HeroSection
+          title="Trusted by small businesses everywhere"
+          subtitle={{ regular: "Payments that ", gradient: "make sense." }}
+          description="Tally lets small businesses take payments in person and online, see their money clearly, and get paid out daily — one simple fee, no jargon."
+          ctaText="Create Account"
+          ctaHref="#signup"
+          bottomImage={null as unknown as { light: string; dark: string }}
+        />
+      </div>
 
       <section className="home-features-grid">
         <div className="home-feature-card">

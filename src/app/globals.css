@@ -1,5 +1,12 @@
-/* ===== Tailwind (utilities only — no preflight, so existing styles are untouched) ===== */
-@layer theme, base, components, utilities;
+/* ===== Tailwind (utilities only — no preflight, so existing styles are untouched) =====
+   "legacy" holds every pre-existing hand-written rule below, placed BEFORE "utilities"
+   in the layer order so Tailwind utility classes correctly out-rank it wherever both
+   apply to the same element/property — matching how real Tailwind + Preflight setups
+   behave (Preflight and utilities are both layered; utilities wins). Un-layered CSS
+   always beats ANY layer regardless of order, which is what caused the original
+   conflicts (our old plain `h1 { font-size: 27px }` clobbering Tailwind's `text-4xl`,
+   etc.) — moving our CSS into a layer is the systemic fix, not a per-property patch. */
+@layer theme, base, components, legacy, resets, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
 
@@ -15,6 +22,28 @@
     transform: translateY(0);
   }
 }
+
+/* "resets" sits between "legacy" and "utilities": it beats our own legacy CSS
+   (e.g. legacy's `h1 { font-weight: 700 }`) but still loses to any Tailwind
+   utility class. This exists because NEITHER legacy NOR the vendored
+   component's own Tailwind classes ever set heading font-weight/margin — the
+   component relies on Tailwind Preflight (which we don't load) to reset those
+   to `inherit`/0, so without this they fall through to the browser's native
+   bold-heading default, which sits below all author CSS regardless of layers. */
+@layer resets {
+  .hero-dark-original {
+    font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+      "Noto Color Emoji";
+  }
+  .hero-dark-original h1,
+  .hero-dark-original h2 {
+    margin: 0;
+    font-weight: inherit;
+    font-family: inherit;
+  }
+}
+
+@layer legacy {
 
 /* ===== Design tokens (from design_handoff_tally_app/README.md) ===== */
 :root {
@@ -1328,3 +1357,5 @@ h1 {
   height: 48px;
   font-size: 14.5px;
 }
+
+} /* end @layer legacy */
