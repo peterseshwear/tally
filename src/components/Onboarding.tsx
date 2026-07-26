@@ -14,9 +14,86 @@ function Field({ label, placeholder }: { label: string; placeholder: string }) {
   );
 }
 
-function AuthFlow() {
+function MarketingHome({
+  onCreateAccount,
+  onSignIn,
+}: {
+  onCreateAccount: () => void;
+  onSignIn: () => void;
+}) {
+  return (
+    <div className="home">
+      <nav className="home-nav">
+        <div className="brand">
+          <div className="brand-mark">T</div>
+          <span className="brand-name">TALLY</span>
+        </div>
+        <div className="home-nav-right">
+          <a className="home-link" href="#contact">
+            Contact us
+          </a>
+          <div className="btn-blue" onClick={onCreateAccount}>
+            Create Account
+          </div>
+        </div>
+      </nav>
+
+      <section className="home-hero">
+        <h1 className="home-hero-title">Payments that make sense</h1>
+        <p className="home-hero-sub">
+          Tally lets small businesses take payments in person and online, see their money clearly, and get paid out
+          daily — one simple fee, no jargon.
+        </p>
+        <div className="home-hero-cta">
+          <div className="btn-blue btn-blue--lg" onClick={onCreateAccount}>
+            Create Account
+          </div>
+          <div className="btn-outline" onClick={onSignIn}>
+            Sign in
+          </div>
+        </div>
+      </section>
+
+      <section className="home-features-grid">
+        <div className="home-feature-card">
+          <div className="feature-dot feature-dot--lg">✓</div>
+          <div className="home-feature-title">Accept payments anywhere</div>
+          <div className="home-feature-text">
+            Tap-to-pay on your phone, payment links, QR codes, online checkout.
+          </div>
+        </div>
+        <div className="home-feature-card">
+          <div className="feature-dot feature-dot--lg">✓</div>
+          <div className="home-feature-title">See your money clearly</div>
+          <div className="home-feature-text">
+            Plain-English dashboard, explicit payout dates, disputes without the legalese.
+          </div>
+        </div>
+        <div className="home-feature-card">
+          <div className="feature-dot feature-dot--lg">✓</div>
+          <div className="home-feature-title">One simple fee</div>
+          <div className="home-feature-text">2.6% + 10¢ per payment, daily payouts included.</div>
+        </div>
+      </section>
+
+      <footer className="home-footer" id="contact">
+        <span>© {new Date().getFullYear()} Tally</span>
+        <a className="home-link" href="mailto:hello@tally.com">
+          Contact us
+        </a>
+      </footer>
+    </div>
+  );
+}
+
+function AuthFlow({
+  screen,
+  setScreen,
+}: {
+  screen: "signup" | "signin";
+  setScreen: (next: AuthScreen) => void;
+}) {
   const { signUp, signIn } = useTally();
-  const [screen, setScreen] = useState<AuthScreen>("welcome");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -36,49 +113,6 @@ function AuthFlow() {
     setScreen(next);
     setError(null);
   };
-
-  if (screen === "welcome") {
-    return (
-      <>
-        <div className="ob-heading">
-          <div className="ob-title">Payments that make sense</div>
-          <div className="ob-sub">
-            Tally lets small businesses take payments in person and online, see their money clearly, and get paid out
-            daily — one simple fee, no jargon.
-          </div>
-        </div>
-        <div className="welcome-features">
-          <div className="feature">
-            <div className="feature-dot">✓</div>
-            <span>
-              <b>Accept payments anywhere</b> — tap-to-pay on your phone, payment links, QR codes, online checkout.
-            </span>
-          </div>
-          <div className="feature">
-            <div className="feature-dot">✓</div>
-            <span>
-              <b>See your money clearly</b> — plain-English dashboard, explicit payout dates, disputes without the
-              legalese.
-            </span>
-          </div>
-          <div className="feature">
-            <div className="feature-dot">✓</div>
-            <span>
-              <b>One simple fee</b> — 2.6% + 10¢ per payment, daily payouts included.
-            </span>
-          </div>
-        </div>
-        <div className="ob-footer">
-          <div className="btn-dark" onClick={() => switchScreen("signup")}>
-            Sign up
-          </div>
-          <div className="btn-secondary" onClick={() => switchScreen("signin")}>
-            Sign in
-          </div>
-        </div>
-      </>
-    );
-  }
 
   const isSignup = screen === "signup";
   return (
@@ -237,6 +271,11 @@ function QuestionSteps() {
 
 export default function Onboarding() {
   const { authed, obStep } = useTally();
+  const [screen, setScreen] = useState<AuthScreen>("welcome");
+
+  if (!authed && screen === "welcome") {
+    return <MarketingHome onCreateAccount={() => setScreen("signup")} onSignIn={() => setScreen("signin")} />;
+  }
 
   return (
     <div className="ob-wrap">
@@ -250,7 +289,7 @@ export default function Onboarding() {
             </span>
           )}
         </div>
-        {authed ? <QuestionSteps /> : <AuthFlow />}
+        {authed ? <QuestionSteps /> : <AuthFlow screen={screen as "signup" | "signin"} setScreen={setScreen} />}
       </div>
     </div>
   );
