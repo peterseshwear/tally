@@ -57,12 +57,12 @@
   --emerald-500: oklch(34.54% 0.074 163.15);
 
   /* Custom Colors */
-  --primary-0: oklch(0.96 0.037 162.4); /* #E5FCF5 */
-  --primary-25: oklch(0.92 0.067 158.7); /* #CCFAEB */
-  --primary-50: oklch(0.84 0.124 158.2); /* #99F5D6 */
-  --primary-100: oklch(0.81 0.182 160); /* #00E599 */
-  --primary-200: oklch(0.6 0.164 159.8); /* #00B77A */
-  --primary-300: oklch(0.35 0.098 159.8); /* #005C3D */
+  --primary-0: oklch(0.96 0.037 219); /* #D7F8FF */
+  --primary-25: oklch(0.92 0.067 219); /* #B3F0FF */
+  --primary-50: oklch(0.84 0.124 219); /* #59DDFF */
+  --primary-100: oklch(64.84% 0.11 219); /* #219EBC */
+  --primary-200: oklch(0.6 0.164 219); /* #0094C2 */
+  --primary-300: oklch(0.35 0.098 219); /* #00455D */
 
   --secondary-0: oklch(97.65% 0.014 285.6); /* #F6F5FF */
   --secondary-25: oklch(92.94% 0.039 285.6); /* #E3E0FF */
@@ -155,12 +155,12 @@
   --emerald-400: oklch(62% 0.105 161.5);
   --emerald-500: oklch(70% 0.08 163.1);
 
-  --primary-0: oklch(18% 0.02 160);
-  --primary-25: oklch(25% 0.04 160);
-  --primary-50: oklch(40% 0.07 160);
-  --primary-100: oklch(60% 0.11 160);
-  --primary-200: oklch(55% 0.1 160);
-  --primary-300: oklch(75% 0.13 160);
+  --primary-0: oklch(18% 0.02 219); /* #071418 */
+  --primary-25: oklch(25% 0.04 219); /* #05262F */
+  --primary-50: oklch(40% 0.07 219); /* #065061 */
+  --primary-100: oklch(60% 0.11 219); /* #008FAD */
+  --primary-200: oklch(55% 0.1 219); /* #007F99 */
+  --primary-300: oklch(75% 0.13 219); /* #22C1E5 */
 
   --secondary-0: oklch(24% 0.022 285.6);
   --secondary-25: oklch(30% 0.04 285.6);
