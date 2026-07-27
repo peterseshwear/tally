@@ -1,8 +1,14 @@
+export { AnalyticsGrid } from './analytics-grid';
+export * from './analytics-sample-data';
 export { AppShell } from './app-shell';
 export { ChannelSalesChart } from './channel-sales-chart';
 export { ChartCard } from './chart-card';
 export { Dashboard } from './dashboard';
+export { DashboardAuthGate } from './dashboard-auth-gate';
 export { DashboardHeader } from './dashboard-header';
+export { MetricCard } from './metric-card';
+export { MetricEmptyState } from './metric-empty-state';
+export { MetricSparkline } from './metric-sparkline';
 export { NetRevenueChart } from './net-revenue-chart';
 export * from './sample-data';
 export { SidebarChangelogCard } from './sidebar-changelog-card';

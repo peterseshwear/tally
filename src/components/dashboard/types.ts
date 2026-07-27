@@ -43,3 +43,23 @@ export interface ChangelogEntry {
   href: string;
   linkLabel: string;
 }
+
+export interface MetricPoint {
+  label: string;
+  value: number;
+}
+
+export interface AnalyticsMetric {
+  key: string;
+  title: string;
+  colSpan: 2 | 3;
+  periodLabel?: string;
+  empty?: boolean;
+  value?: string;
+  previousPeriod?: string;
+  data?: MetricPoint[];
+  yDomainMax?: number;
+  yTickFormatter?: (value: number) => string;
+  updatedLabel?: string;
+  moreDetailsHref?: string;
+}
