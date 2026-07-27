@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+import { AppShell, Dashboard } from '@/components/dashboard';
 import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/client';
 
@@ -73,23 +74,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <section className="bg-primary-300 min-h-[820px] px-6 py-10 text-white lg:py-24">
-      <div className="container mx-auto flex max-w-[500px] flex-col items-center py-10 text-center">
-        <h1 className="text-2xl leading-tight font-semibold">
-          Welcome, {user.email}
-        </h1>
-        <p className="mt-2 text-sm text-white/80">
-          Your Zippay account is set up. This is your dashboard.
-        </p>
-        <Button
-          type="button"
-          className="bg-gray-0/10 hover:bg-gray-0/15 mt-8 border border-white/15 text-white"
-          variant="secondary"
-          onClick={handleSignOut}
-        >
-          Sign out
-        </Button>
-      </div>
-    </section>
+    <AppShell user={user} onSignOut={handleSignOut}>
+      <Dashboard />
+    </AppShell>
   );
 }

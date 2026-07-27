@@ -6,6 +6,7 @@ import localFont from 'next/font/local';
 import Banner from '@/components/layout/banner';
 import Footer from '@/components/layout/footer';
 import Navbar from '@/components/layout/navbar';
+import { SiteChrome } from '@/components/layout/site-chrome';
 import { ThemeProvider } from '@/components/theme-provider';
 
 const satoshi = localFont({
@@ -103,10 +104,14 @@ export default function RootLayout({
           storageKey="zippay-theme"
           disableTransitionOnChange
         >
-          <Banner />
-          <Navbar />
+          <SiteChrome>
+            <Banner />
+            <Navbar />
+          </SiteChrome>
           <main>{children}</main>
-          <Footer />
+          <SiteChrome>
+            <Footer />
+          </SiteChrome>
         </ThemeProvider>
       </body>
     </html>
