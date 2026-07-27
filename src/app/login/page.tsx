@@ -2,6 +2,8 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { FaXTwitter } from 'react-icons/fa6';
 import { FcGoogle } from 'react-icons/fc';
 
@@ -10,6 +12,12 @@ import { Input } from '@/components/ui/input';
 import { createClient } from '@/lib/supabase/client';
 
 export default function Login() {
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
   const handleGoogleSignIn = async () => {
     const supabase = createClient();
     await supabase.auth.signInWithOAuth({
@@ -18,6 +26,34 @@ export default function Login() {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        setError(signInError.message);
+        return;
+      }
+
+      router.push('/dashboard');
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Something went wrong. Please try again.',
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -71,27 +107,32 @@ export default function Login() {
           <span className="bg-gray-0/15 h-px w-full" />
         </div>
 
-        <form
-          className="w-full space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-          }}
-        >
+        <form className="w-full space-y-4" onSubmit={handleSubmit}>
           <Input
             type="email"
             placeholder="Email"
             className="bg-gray-0/10 h-11 rounded-[12px] border border-white/15 text-white placeholder:text-white/60 focus-visible:ring-white/20"
             required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
           <Input
             type="password"
             placeholder="Password"
             className="bg-gray-0/10 h-11 rounded-[12px] border border-white/15 text-white placeholder:text-white/60 focus-visible:ring-white/20"
             required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
 
-          <Button type="submit" className="mt-2 w-full text-gray-900">
-            Continue with Email
+          {error && <p className="text-sm text-red-300">{error}</p>}
+
+          <Button
+            type="submit"
+            className="mt-2 w-full text-gray-900"
+            disabled={loading}
+          >
+            {loading ? 'Signing in…' : 'Continue with Email'}
           </Button>
         </form>
 

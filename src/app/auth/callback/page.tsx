@@ -10,7 +10,6 @@ export default function AuthCallbackPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const supabase = createClient();
     const url = new URL(window.location.href);
     const code = url.searchParams.get('code');
     const errorDescription = url.searchParams.get('error_description');
@@ -25,13 +24,18 @@ export default function AuthCallbackPage() {
       return;
     }
 
-    supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-      if (error) {
-        setError(error.message);
-        return;
-      }
-      router.replace('/');
-    });
+    try {
+      const supabase = createClient();
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (error) {
+          setError(error.message);
+          return;
+        }
+        router.replace('/');
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong.');
+    }
   }, [router]);
 
   return (
