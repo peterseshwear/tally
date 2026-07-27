@@ -1,7 +1,7 @@
 'use client';
 
 import type { User } from '@supabase/supabase-js';
-import { Bell, LayoutGrid, LogOut, PanelLeft, Send } from 'lucide-react';
+import { Bell, LayoutGrid, LogOut, PanelLeft } from 'lucide-react';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -59,21 +59,6 @@ export function DashboardHeader({
       </div>
 
       <div className="flex items-center gap-2">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="border-border"
-              aria-label="Send"
-            >
-              <Send className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent container={portalContainer}>Send</TooltipContent>
-        </Tooltip>
-
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
