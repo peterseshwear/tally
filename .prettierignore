@@ -1,15 +1,8 @@
-# Build artifacts
-.next/
-.turbo/
-._next/
-. __tmp__/
-. dist/
-. node_modules/
-. target/
-. compiled/
-
-# Other files
-.env*
-.DS_Store
-*.pem
-*.log
+node_modules
+dist
+.output
+.vinxi
+pnpm-lock.yaml
+package-lock.json
+bun.lock
+routeTree.gen.ts

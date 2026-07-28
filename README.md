@@ -1,36 +1,29 @@
-# Zippay NextJS Template
+# Welcome to your Lovable project
 
-Zippay NextJS Template is a premium template built by https://www.shadcnblocks.com
+This project was built with [Lovable](https://lovable.dev).
 
-- [Demo](https://Zippay-nextjs-template.vercel.app/)
-- [Documentation](https://docs.shadcnblocks.com/templates/getting-started)
+## Build with Lovable
 
-## Screenshot
+Open your project in the [Lovable editor](https://lovable.dev) and keep building.
 
-![Zippay NextJS Template screenshot](./public/og-image.jpg)
+- **Ship faster**: describe what you want to build and Lovable handles the code.
+- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
+- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
 
-## Getting Started
+## Development
 
-```bash
-npm install
-```
+Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
 
-```bash
+```sh
+git clone <this-repository-url>
+cd <repository-name>
+npm i
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Built with
 
-## Tech Stack
-
-- Nextjs 15 / App Router
-- Tailwind 4
-- shadcn/ui
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com)
-
-# Zippay-nextjs-template
-
-# zippay-nextjs-template
+- TanStack Start
+- TypeScript
+- React
+- Tailwind CSS
